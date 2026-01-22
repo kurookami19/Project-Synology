@@ -1,0 +1,4 @@
+Pillow==12.1.0
+pynput==1.8.1
+python-dotenv==1.2.1
+Requests==2.32.5

@@ -1,0 +1,35 @@
+# File: .gitignore
+
+# ===== FILE WITH CREDENTIALS =====
+.env
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ===== Ambienti virtuali =====
+venv/
+env/
+ENV/
+.venv
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ===== File scaricati =====
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+downloads/
+temp_*.jpg
