@@ -5,9 +5,9 @@ Provides an interactive CLI menu for camera management, snapshot capture, and re
 
 from auth import login, logout
 from info import get_info
-from camera import get_cameras_list, get_capability_by_cam_id, get_live_path
+from camera import get_cameras_list, get_capability_by_cam_id, get_live_path, enable, disable
 from PTZ import show_preset, ptz_controller
-from snapshot import take_snapshot, download_snapshot, get_snapshot_list, save_snapshot, show_snapshot
+from snapshot import take_snapshot, download_snapshot, get_snapshot_list, save_snapshot, show_snapshot, delete_snapshots
 from recording import rec_list, rec_download
 
 
@@ -197,6 +197,87 @@ def handle_get_live_path(sid, cam_id):
     print(f"RTSP APTH FOR LIVE VIEW: {rtsp_url}")
 
 
+def handle_enable_disable_camera(sid, cam_id):
+    """Handle camera disable or enable"""
+    print(f"Do you want to enable or disable camera: {cam_id}?")
+    print("[E]: Enable      [D]: Disable ")
+    c = input()
+    c = c.upper()
+    if c == "E":
+        enable(sid, cam_id)
+    elif c == "D":
+        disable(sid, cam_id)
+    else:
+        print("Invalid command.")
+
+
+def handle_delete_snap(sid, cam_id):
+    """handle delete snapshot by IDs"""
+    snap_list = get_snapshot_list(sid, cam_id)
+    
+    if not snap_list:
+        print_error("No snapshots found")
+        return
+    
+    print("\nAvailable Snapshots:")
+    for snap in snap_list:
+        print(f"ID: {snap['id']:<5} | {snap['fileName']:^60} | Camera: {snap['camName']}")
+
+    snap_dict = {snap['id']: snap for snap in snap_list}
+    
+    # Lista per raccogliere gli ID da eliminare
+    ids_to_delete = []
+
+    while True:
+        snap_id_input = input('\nSnapshot ID to delete (Q when finished): ').strip()
+        
+        if snap_id_input.upper() == 'Q':
+            break
+        
+        if not snap_id_input.isdigit():
+            print_error("Please enter a valid numeric ID")
+            continue
+        
+        snap_id = int(snap_id_input)
+        
+        if snap_id not in snap_dict:
+            print_error(f"ID {snap_id} not found")
+            continue
+        
+        # Controlla se l'ID è già stato aggiunto
+        if snap_id in ids_to_delete:
+            print(f"ID {snap_id} already marked for deletion")
+            continue
+        
+        # Aggiungi alla lista
+        ids_to_delete.append(snap_id)
+        print_success(f"Snapshot {snap_id} ({snap_dict[snap_id]['fileName']}) marked for deletion")
+    
+    # Dopo l'uscita dal ciclo, elimina tutto
+    if not ids_to_delete:
+        print_info("No snapshots selected for deletion")
+        return
+    
+    # Conferma finale
+    print(f"\nAbout to delete {len(ids_to_delete)} snapshot(s):")
+    for snap_id in ids_to_delete:
+        print(f"{snap_id}: {snap_dict[snap_id]['fileName']}")
+    
+    confirm = input("\nConfirm deletion? (yes/no): ").strip().lower()
+    
+    if confirm != 'yes':
+        print_info("Deletion cancelled")
+        return
+    
+    # Chiamata API Delete
+    result = delete_snapshots(sid, ids_to_delete)
+    
+    if result:
+        print_success(f"Successfully deleted {len(ids_to_delete)} snapshot(s)")
+    else:
+        print_error("Deletion failed")
+
+
 def display_menu():
     """Display the main menu options."""
     print_header("MAIN MENU")
@@ -204,11 +285,13 @@ def display_menu():
     print("[2] Get Camera Capability")
     print("[3] Move Camera (PTZ)")
     print("[4] Take Snapshot and Save")
-    print("[5] Download Snapshot (by ID)")
-    print("[6] Show Recording List")
-    print("[7] Download Recording (by ID)")
-    print("[8] Show List of PTZ Presets")
-    print("[9] Show RTSP live Info")
+    print("[5] Delete Snapshot (by ID)")
+    print("[6] Download Snapshot (by ID)")
+    print("[7] Show Recording List")
+    print("[8] Download Recording (by ID)")
+    print("[9] Show List of PTZ Presets")
+    print("[10] Show RTSP live Info")
+    print("[11] Enable/Disable selected camera")
     print("[0] Logout and Exit")
     print("=" * 50)
 
@@ -253,20 +336,24 @@ def main():
             elif command == "4":
                 handle_snapshot_capture(sid, cam_id, ds_id)
             elif command == "5":
-                handle_snapshot_download(sid, cam_id)
+                handle_delete_snap(sid, cam_id)
             elif command == "6":
-                handle_recording_list(sid)
+                handle_snapshot_download(sid, cam_id)
             elif command == "7":
-                handle_recording_download(sid)
+                handle_recording_list(sid)
             elif command == "8":
-                handle_preset_list(sid, cam_id)
+                handle_recording_download(sid)
             elif command == "9":
+                handle_preset_list(sid, cam_id)
+            elif command == "10":
                 handle_get_live_path(sid, cam_id)
+            elif command == "11":
+                handle_enable_disable_camera(sid, cam_id)
             elif command == "0":
                 print_info("Exiting...")
                 break
             else:
-                print_error("Invalid command. Please use 0-9")
+                print_error("Invalid command. Please use 0-10")
         
     except KeyboardInterrupt:
         print("\n[INFO] Program interrupted by user")

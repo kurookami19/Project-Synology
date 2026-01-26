@@ -138,3 +138,69 @@ def get_live_path(sid, camId):
     except Exception as e:
         print(f"[ERROR] GetLiveViewPath failed: {e}")
         return None
+
+
+def enable(sid, idList):
+    """Ënable the specified camera(s)"""
+    params = {
+        'api' : "SYNO.SurveillanceStation.Camera",
+        'method' : "Enable",
+        'version' : "9",
+        '_sid' : sid,
+        'idList' : idList
+    }
+
+    try:
+        response = requests.get(
+            f"{BASE_URL}{CAMERA_API_PATH}",
+            params=params,
+            timeout=10,
+            verify=False
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get('success'):
+            print(f"[SUCCESS] Camera {idList} enabled")
+            return True
+        else:
+            errno = data.get("error", {}).get('code')
+            print("[ERROR] Enable camera failed"
+                  f"with API code: {errno}")
+
+    except Exception as e:
+        print(f"[ERROR] Enable camera failed: {e}")
+
+
+def disable(sid, idList):
+    """Disable the specified camera(s)"""
+    params = {
+        'api' : "SYNO.SurveillanceStation.Camera",
+        'method' : "Disable",
+        'version' : "9",
+        '_sid' : sid,
+        'idList' : idList
+    }
+
+    try:
+        response = requests.get(
+            f"{BASE_URL}{CAMERA_API_PATH}",
+            params=params,
+            timeout=10,
+            verify=False
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get('success'):
+            print(f"[SUCCESS] Camera {idList} disabled")
+            return True
+        else:
+            errno = data.get("error", {}).get('code')
+            print("[ERROR] Disable camera failed"
+                  f"with API code: {errno}")
+
+    except Exception as e:
+        print(f"[ERROR] Disable camera failed: {e}")

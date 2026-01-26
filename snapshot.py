@@ -182,3 +182,44 @@ def show_snapshot(snapData):
         
     except Exception as e:
         print(f"[ERROR] Failed to display snapshot: {e}")
+
+
+def delete_snapshots(sid, id_list):
+    """Delete snapshots by ID list"""
+    
+    # Costruisci l'array di oggetti
+    objList = [{"id": f"0:{snap_id}"} for snap_id in id_list]
+    
+    params = {
+        'api': 'SYNO.SurveillanceStation.SnapShot',
+        'method': 'Delete',
+        'version': '1',
+        '_sid': sid,
+        'objList': objList
+    }
+    
+    try:
+        response = requests.get(
+            f"{BASE_URL}{CAMERA_API_PATH}",
+            params=params,
+            timeout=10,
+            verify=False
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        if not data.get('success'):
+            errno = data.get('error', {}).get('code')
+            print(f"[ERROR] Snapshot deletion failed "
+                  f"with API code: {errno}")
+            return False
+        
+        print(f"[SUCCESS] Successfully deleted"
+              f" {len(id_list)} snapshot(s)")
+        return True
+        
+    except Exception as e:
+        print(f"[ERROR] Snapshot deletion failed: {e}")
+        return False
+
+
