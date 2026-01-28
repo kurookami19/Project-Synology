@@ -351,7 +351,7 @@ def main():
                 print_info("Exiting...")
                 break
             else:
-                print_error("Invalid command. Please use 0-10")
+                print_error("Invalid command. Please use 0-11")
         
     except KeyboardInterrupt:
         print("\n[INFO] Program interrupted by user")
