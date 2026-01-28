@@ -94,14 +94,17 @@ def handle_snapshot_capture(sid, cam_id, ds_id):
     print_success("Snapshot captured successfully!")
     
     print("\nDo you want to save this snapshot to Synology?")
-    print("[1] Yes    [0] No")
+    print("[Y] Yes    [N] No")
     choice = input("Choice: ").strip()
     
-    if choice == "1":
+    if choice == "Y":
         snapshot_id = save_snapshot(sid, snap_data)
         if snapshot_id:
             print_success(f"Snapshot saved with ID: {snapshot_id}")
-
+    elif choice == "N":
+        print("Snapshot not saved.")
+    else:
+        print_error("Invalid choice. Snapshot not saved.")
 
 def handle_snapshot_download(sid, cam_id):
     """Handle snapshot download by ID."""
@@ -193,9 +196,6 @@ def handle_get_live_path(sid, cam_id):
         print_info("No Live path of the live view for this camera")
         return
     
-    rtsp_url = livePath['rtsp_path']
-    print(f"RTSP APTH FOR LIVE VIEW: {rtsp_url}")
-
 
 def handle_enable_disable_camera(sid, cam_id):
     """Handle camera disable or enable"""
@@ -272,9 +272,7 @@ def handle_delete_snap(sid, cam_id):
     # Chiamata API Delete
     result = delete_snapshots(sid, ids_to_delete)
     
-    if result:
-        print_success(f"Successfully deleted {len(ids_to_delete)} snapshot(s)")
-    else:
+    if not result:
         print_error("Deletion failed")
 
 

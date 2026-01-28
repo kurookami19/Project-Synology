@@ -8,6 +8,7 @@ import requests
 import base64
 from PIL import Image
 import io
+import json
 
 
 def take_snapshot(sid, camId, dsId):
@@ -195,7 +196,7 @@ def delete_snapshots(sid, id_list):
         'method': 'Delete',
         'version': '1',
         '_sid': sid,
-        'objList': objList
+        'objList': json.dumps(objList)
     }
     
     try:
@@ -221,5 +222,3 @@ def delete_snapshots(sid, id_list):
     except Exception as e:
         print(f"[ERROR] Snapshot deletion failed: {e}")
         return False
-
-
